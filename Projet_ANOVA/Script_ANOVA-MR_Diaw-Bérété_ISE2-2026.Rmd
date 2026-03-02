@@ -1,0 +1,973 @@
+---
+title: "Projet final : ANOVA à Mesures Répétées"
+author: "Awa Diaw et Mamady I Bérété"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: true
+    toc_depth: 3
+    toc_float:
+      collapsed: false
+      smooth_scroll: true
+    number_sections: false
+    theme: flatly
+    highlight: kate
+    df_print: paged
+    code_folding: hide
+---
+
+```{css, echo=FALSE}
+/* ═══════════════════════════════════════════════
+   PALETTE
+═══════════════════════════════════════════════ */
+:root {
+  --vert-fonce  : #1e4d2b;
+  --vert-moyen  : #2e7d45;
+  --vert-clair  : #e8f5ec;
+  --vert-hover  : #d0edda;
+  --gris-texte  : #2c2c2c;
+  --gris-doux   : #f7f7f7;
+  --bordure     : #c8e6d0;
+  --toc-width   : 280px;
+}
+
+/* ═══════════════════════════════════════════════
+   BODY & LAYOUT GLOBAL
+═══════════════════════════════════════════════ */
+body {
+  font-family : 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  font-size   : 15px;
+  line-height : 1.8;
+  color       : var(--gris-texte);
+  background  : #ffffff;
+}
+
+/* Agrandir le conteneur principal */
+.main-container {
+  max-width   : 1280px !important;
+  margin-left : 0 !important;
+}
+
+/* ── Colonne TOC : largeur fixe élargie ───────────────── */
+.col-xs-12.col-sm-4.col-md-3 {
+  width         : var(--toc-width) !important;
+  max-width     : var(--toc-width) !important;
+  flex          : 0 0 var(--toc-width) !important;
+  padding-right : 0 !important;
+  position      : relative;
+}
+
+/* ── Colonne contenu : prend le reste ─────────────────── */
+.col-xs-12.col-sm-8.col-md-9 {
+  width      : calc(100% - var(--toc-width)) !important;
+  max-width  : calc(100% - var(--toc-width)) !important;
+  flex       : 1 1 auto !important;
+  padding-left: 28px !important;
+}
+
+/* ═══════════════════════════════════════════════
+   TABLE DES MATIÈRES — FIXE, NE DISPARAÎT JAMAIS
+═══════════════════════════════════════════════ */
+#TOC {
+  position      : fixed !important;   /* fixe = reste à l'écran en permanence */
+  top           : 0;
+  left          : 0;
+  width         : var(--toc-width);
+  height        : 100vh;
+  overflow-y    : auto;
+  overflow-x    : hidden;
+  background    : linear-gradient(180deg, #f0faf4 0%, #e2f3ea 100%);
+  border-right  : 2px solid var(--bordure);
+  padding       : 22px 14px 30px 16px;
+  font-size     : 15px;
+  line-height   : 1.55;
+  z-index       : 1000;
+  box-shadow    : 3px 0 18px rgba(30,77,43,0.08);
+  scrollbar-width     : thin;
+  scrollbar-color     : var(--bordure) transparent;
+}
+
+#TOC::-webkit-scrollbar       { width: 4px; }
+#TOC::-webkit-scrollbar-thumb { background: var(--bordure); border-radius: 4px; }
+
+/* En-tête TOC */
+#TOC::before {
+  content        : " Table des matières";
+  display        : block;
+  font-weight    : 800;
+  font-size      : 15px;
+  letter-spacing : 0.09em;
+  text-transform : uppercase;
+  color          : var(--vert-fonce);
+  background     : var(--vert-clair);
+  border-radius  : 6px;
+  padding        : 7px 10px;
+  margin-bottom  : 14px;
+  border         : 1px solid var(--bordure);
+}
+
+/* ── Listes dans la TOC ───────────────────────────────── */
+#TOC ul {
+  padding-left : 0;
+  list-style   : none;
+  margin       : 0;
+}
+
+/* Sous-listes : cachées par défaut */
+#TOC ul ul {
+  display      : none;           /* masqué par défaut               */
+  padding-left : 0;
+  margin       : 1px 0 1px 10px;
+  border-left  : 2px solid var(--bordure);
+  padding-left : 8px;
+}
+
+/* Sous-listes de niveau 3 */
+#TOC ul ul ul {
+  margin-left  : 8px;
+  border-left  : 1px dashed var(--bordure);
+}
+
+/* Sous-liste active (section en cours) : visible */
+#TOC ul ul.toc-open {
+  display : block;
+}
+
+/* ── Liens TOC ────────────────────────────────────────── */
+#TOC a {
+  color           : var(--vert-fonce);
+  text-decoration : none;
+  display         : block;
+  padding         : 4px 9px;
+  border-radius   : 5px;
+  transition      : background 0.15s, padding-left 0.15s;
+  white-space     : nowrap;
+  overflow        : hidden;
+  text-overflow   : ellipsis;
+  font-weight     : 500;
+}
+
+/* Liens niveau 1 : plus grands */
+#TOC > ul > li > a {
+  font-weight   : 700;
+  font-size     : 15px;
+  color         : var(--vert-fonce);
+  padding       : 5px 9px;
+  margin-bottom : 1px;
+}
+
+/* Liens niveau 2 */
+#TOC ul ul > li > a {
+  font-weight : 500;
+  font-size   : 15px;
+  color       : #2d5c3e;
+}
+
+/* Liens niveau 3 */
+#TOC ul ul ul > li > a {
+  font-size   : 15px;
+  color       : #4a7060;
+  font-weight : 400;
+}
+
+#TOC a:hover {
+  background   : var(--vert-hover);
+  color        : var(--vert-moyen);
+  padding-left : 14px;
+}
+
+/* Lien de section active */
+#TOC a.toc-active {
+  background    : var(--vert-moyen) !important;
+  color         : #ffffff !important;
+  font-weight   : 700 !important;
+  border-radius : 5px;
+  padding-left  : 10px !important;
+}
+
+/* Lien de section parente (contient la section active) */
+#TOC a.toc-parent {
+  color       : var(--vert-moyen);
+  font-weight : 700;
+}
+
+/* ═══════════════════════════════════════════════
+   DÉCALAGE DU CONTENU pour la TOC fixe
+═══════════════════════════════════════════════ */
+.row {
+  margin-left : 0 !important;
+}
+
+/* ═══════════════════════════════════════════════
+   TITRES
+═══════════════════════════════════════════════ */
+h1, h2, h3, h4 {
+  font-family : 'Segoe UI', sans-serif;
+  color       : var(--vert-fonce);
+  font-weight : 700;
+}
+h1.title {
+  font-size     : 15px;
+  border-bottom : 3px solid var(--vert-moyen);
+  padding-bottom: 0.4em;
+}
+.author, .date, h3.subtitle { color: var(--vert-moyen); }
+h1 { font-size: 15px; border-bottom: 2px solid var(--bordure); padding-bottom: 0.25em; margin-top: 2rem; }
+h2 { font-size: 15px; color: var(--vert-moyen); margin-top: 1.6rem; }
+h3 { font-size: 15px; color: #3a7050; margin-top: 1.2rem; }
+h4 { font-size: 15px; color: #4a7a60; }
+
+/* ═══════════════════════════════════════════════
+   BOUTON CODE FOLDING
+═══════════════════════════════════════════════ */
+.code-folding-btn {
+  float         : right;
+  margin        : 0 0 6px 0;
+  padding       : 3px 14px;
+  font-size     : 10px;
+  font-weight   : 700;
+  background    : var(--vert-fonce);
+  color         : #ffffff !important;
+  border        : none;
+  border-radius : 20px;
+  cursor        : pointer;
+  letter-spacing: 0.05em;
+  transition    : background 0.18s, transform 0.1s;
+  box-shadow    : 0 2px 7px rgba(30,77,43,0.25);
+  z-index       : 10;
+}
+.code-folding-btn:hover  { background: var(--vert-moyen); transform: translateY(-1px); }
+.code-folding-btn:active { transform: scale(0.97); }
+
+/* ═══════════════════════════════════════════════
+   INTERPRÉTATION
+═══════════════════════════════════════════════ */
+.interpretation {
+  background    : var(--vert-clair);
+  border-left   : 4px solid var(--vert-moyen);
+  border-radius : 0 8px 8px 0;
+  padding       : 13px 18px;
+  margin        : 1.3rem 0;
+  font-style    : italic;
+  font-size     : 15px;
+  color         : #1a3a25;
+}
+
+/* ═══════════════════════════════════════════════
+   BLOCKQUOTES
+═══════════════════════════════════════════════ */
+blockquote {
+  border-left   : 3px solid var(--vert-moyen);
+  background    : #f9fdf9;
+  padding       : 10px 16px;
+  border-radius : 0 6px 6px 0;
+  color         : #3d5c46;
+  font-size     : 15px;
+  margin        : 1rem 0;
+}
+
+/* ═══════════════════════════════════════════════
+   TABLEAUX
+═══════════════════════════════════════════════ */
+table {
+  border-collapse : collapse;
+  width           : 100%;
+  margin          : 1rem 0;
+  font-size       : 15px;
+}
+thead { background-color: var(--vert-fonce); color: #ffffff; }
+th, td { padding: 9px 14px; border: 1px solid #dde; text-align: left; }
+tr:nth-child(even) { background: var(--gris-doux); }
+tr:hover { background: var(--vert-hover); transition: background 0.12s; }
+
+/* ═══════════════════════════════════════════════
+   CODE
+═══════════════════════════════════════════════ */
+pre, code { font-family: 'Fira Code', 'Courier New', monospace; }
+pre {
+  background    : #f0f5f1;
+  border-left   : 3px solid var(--vert-moyen);
+  border-radius : 6px;
+  padding       : 14px 16px;
+  font-size     : 15px;
+  overflow-x    : auto;
+}
+code { font-size: 15px; color: #1e5c35; background: #edf7f0; padding: 1px 5px; border-radius: 3px; }
+pre code { color: inherit; background: none; padding: 0; }
+
+/* ═══════════════════════════════════════════════
+   SÉPARATEURS & BADGE
+═══════════════════════════════════════════════ */
+hr { border: none; border-top: 1px solid var(--bordure); margin: 2.2rem 0; }
+
+.badge-todo {
+  display       : inline-block;
+  background    : #fff3cd;
+  border        : 1px solid #ffc107;
+  color         : #856404;
+  border-radius : 20px;
+  padding       : 2px 10px;
+  font-size     : 15px;
+  font-weight   : 600;
+  letter-spacing: 0.04em;
+  margin-left   : 8px;
+  vertical-align: middle;
+}
+```
+
+```{js, echo=FALSE}
+document.addEventListener("DOMContentLoaded", function () {
+
+  /* ════════════════════════════════════════════════════════════
+     TOC INTELLIGENTE
+     - Position fixe (ne disparaît jamais)
+     - Seuls les titres H1 (#) sont visibles au départ
+     - Quand on entre dans une section H1, ses H2/H3 s'ouvrent
+     - Suivi de la section active en temps réel
+  ════════════════════════════════════════════════════════════ */
+
+  const toc      = document.getElementById("TOC");
+  const allLinks = Array.from(toc ? toc.querySelectorAll("a") : []);
+
+  /* ── Récupère le li parent d'un lien ──────────────────────── */
+  function parentLi(a) { return a.closest("li"); }
+
+  /* ── Récupère la sous-liste ul d'un li ────────────────────── */
+  function childUl(li) { return li ? li.querySelector(":scope > ul") : null; }
+
+  /* ── Tous les ul de niveau 2+ : cachés au départ ─────────── */
+  const rootUl = toc ? toc.querySelector(":scope > ul") : null;
+  if (rootUl) {
+    rootUl.querySelectorAll("ul").forEach(ul => {
+      ul.classList.remove("toc-open");
+    });
+  }
+
+  /* ── Ouvre uniquement la branche du lien actif ────────────── */
+  function openBranch(activeLink) {
+    /* Ferme tout d'abord */
+    if (rootUl) rootUl.querySelectorAll("ul").forEach(ul => ul.classList.remove("toc-open"));
+    allLinks.forEach(a => { a.classList.remove("toc-active"); a.classList.remove("toc-parent"); });
+
+    if (!activeLink) return;
+
+    activeLink.classList.add("toc-active");
+
+    /* Remonte la hiérarchie : ouvre chaque ul parent, marque les parents */
+    let li = parentLi(activeLink);
+    while (li) {
+      const parentUl = li.parentElement; /* le ul qui contient ce li */
+      if (parentUl && parentUl !== rootUl) {
+        parentUl.classList.add("toc-open");
+      }
+      /* Lien du li parent */
+      const parentLink = li.querySelector(":scope > a");
+      if (parentLink && parentLink !== activeLink) {
+        parentLink.classList.add("toc-parent");
+      }
+      li = parentUl ? parentUl.closest("li") : null;
+    }
+
+    /* Ouvre aussi les enfants directs (sous-titres de la section active) */
+    const ownUl = childUl(parentLi(activeLink));
+    if (ownUl) ownUl.classList.add("toc-open");
+
+    /* Scroll dans la TOC pour garder l'actif visible */
+    if (toc) {
+      const rect    = activeLink.getBoundingClientRect();
+      const tocRect = toc.getBoundingClientRect();
+      if (rect.top < tocRect.top + 40 || rect.bottom > tocRect.bottom - 40) {
+        activeLink.scrollIntoView({ block: "nearest", behavior: "smooth" });
+      }
+    }
+  }
+
+  /* ── Calcule la position absolue d'un élément ─────────────── */
+  function getTop(el) {
+    let t = 0;
+    while (el) { t += el.offsetTop; el = el.offsetParent; }
+    return t;
+  }
+
+  /* ── Headings du document ─────────────────────────────────── */
+  const headings = Array.from(document.querySelectorAll("h1[id], h2[id], h3[id], h4[id]"));
+
+  /* ── Correspondance id → lien TOC ────────────────────────── */
+  const linkMap = {};
+  allLinks.forEach(a => {
+    const id = (a.getAttribute("href") || "").replace("#", "");
+    if (id) linkMap[id] = a;
+  });
+
+  /* ── Mise à jour au scroll ────────────────────────────────── */
+  function onScroll() {
+    const scrollY  = window.scrollY + 110;
+    let activeId   = null;
+
+    headings.forEach(h => {
+      if (getTop(h) <= scrollY) activeId = h.id;
+    });
+
+    const activeLink = activeId ? linkMap[activeId] : null;
+    openBranch(activeLink);
+  }
+
+  window.addEventListener("scroll", onScroll, { passive: true });
+  onScroll(); /* initialisation */
+
+  /* ════════════════════════════════════════════════════════════
+     BOUTONS CODE FOLDING — renommés en français
+  ════════════════════════════════════════════════════════════ */
+  function relabelBtn(btn) {
+    btn.textContent = (btn.getAttribute("aria-expanded") === "false")
+      ? "▼ Afficher le code"
+      : "▲ Masquer le code";
+  }
+
+  document.querySelectorAll(".code-folding-btn").forEach(btn => {
+    relabelBtn(btn);
+    btn.addEventListener("click", () => setTimeout(() => relabelBtn(btn), 60));
+  });
+
+});
+```
+
+---
+
+# Préambule {.unnumbered}
+
+Ce projet s'inscrit dans le cadre d'un TP final du cours d'**ANOVA (Analyse de la variance)**.  
+Il porte sur une **ANOVA à mesures répétées à trois facteurs** afin d’évaluer les effets de la variété, du type de terreau et des répétitions sur la croissance des plantes.  
+
+Chaque chunk de code peut être affiché ou masqué grâce aux boutons `▼ Afficher / ▲ Masquer`, facilitant la lecture du script et la consultation des résultats.
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo    = TRUE,
+  message = FALSE,
+  warning = FALSE,
+  fig.align = "center",
+  fig.width = 8,
+  fig.height = 5
+)
+```
+
+## Installation des packages {.unnumbered}
+
+```{r install-packages}
+# ── Liste des packages nécessaires ───────────────────────────────────────────
+packages <- c(
+  "readxl",       # lecture Excel
+  "tidyverse",    # dplyr, ggplot2, tidyr, etc.
+  "ggpubr",       # visualisation améliorée
+  "FactoMineR",   # ACP
+  "factoextra",   # visualisation ACP
+  "knitr",        # tableau et rendu
+  "kableExtra",   # beaux tableaux
+  "writexl",      # export Excel
+  "janitor",      # nettoyage noms variables
+  "rstatix",      # tests statistiques ANOVA, outliers
+  "gtsummary",    # tableaux statistiques
+  "dplyr",        # manipulation données
+  "missMDA",      # imputation NA pour ACP
+  "emmeans",      # comparaisons post-hoc
+  "lme4",         # modèles linéaires mixtes
+  "lmerTest" ,     # ANOVA type III pour LMM
+  "patchwork"
+)
+
+# ── Installer uniquement les packages manquants ───────────────────────────────
+manquants <- packages[!packages %in% installed.packages()[, "Package"]]
+
+if (length(manquants) > 0) {
+  message("Installation de : ", paste(manquants, collapse = ", "))
+  install.packages(manquants, dependencies = TRUE)
+  message("Installation terminée.")
+} else {
+  message("Tous les packages sont déjà installés.")
+}
+
+# Chargement des librairies
+# Chargement des librairies
+invisible(lapply(packages, library, character.only = TRUE))
+```
+
+---
+
+# Introduction
+
+## Présentation de l'étude
+
+La base mise à notre disposition porte sur des données réelles recueillies dans le cadre d’une `expérimentation agronomique.`
+Dans cette expérimentation, trois types de terreau ont été utilisés : `Terreau de Manguier (Ma), Terreau de Caïlcédrat (Ca) et Terreau d’Anacarde (An).`
+Deux variétés de plants ont été semées (`Variété 1 et Variété 2`) et l’expérience est réalisée selon un dispositif à quatre répétitions (`T1 à T4`). Pour chaque combinaison (terreau × variété × répétition), la `hauteur` des plants a été mesurée.
+
+> L'objectif de l'étude est de décrire la croissance des plants selon **terreau** et **variété**, suivre l’évolution sur les **répétitions**, et identifier effets principaux et interactions.  
+
+## Brève explication de l'ANOVA à mesures répétées
+
+> 
+- Analyse des mesures répétées sur les mêmes sujets.
+- Sépare variance inter-sujets (différences naturelles : terreau et variété) et variance intra-sujet (effet répétition).
+- Teste les effets principaux et interactions de 3 facteurs : variété × terreau × répétition.
+- Hypothèses à vérifier : normalité, homogénéité des variances, sphéricité (Mauchly).
+
+<span class="badge-todo">Dans ce travail, nous réalisons successivement : una analyse exploratoire et descriptive des données  (univariée, bivariée et multidimensionnelle) et une analyse inférentielle (anova-MR)</span>
+
+---
+
+# I. Préparation des données
+
+## 1. Lecture des données
+
+```{r lecture-donnees}
+
+# Importer la base Excel
+df_wide <- read_excel("data/dataset.xlsx",sheet = "processed_data")
+
+# Conversion virgule -> point + numérique
+df_wide <- df_wide %>%
+  mutate(across(starts_with("rep"),
+                ~ as.numeric(str_replace(as.character(.), ",", "."))))
+
+# Noms de variables propres
+df_wide <- df_wide %>% clean_names()  
+
+glimpse(df_wide)                   # structure
+dim(df_wide)                       # dimensions
+summary(df_wide)                   # résumé global
+
+colSums(is.na(df_wide))            # valeurs manquantes
+```
+
+## 2. Conversion en format long
+
+Les données ont été initialement fournies au `format large,` où chaque ligne correspond à une plante (Sujet) et les mesures répétées de hauteur sont stockées dans des colonnes distinctes (Rep1, Rep2, Rep3, Rep4).
+
+Cependant, pour réaliser une ANOVA à mesures répétées ou un modèle mixte, les données `doivent être structurées au format long,` dans lequel chaque ligne correspond à une observation unique (`une mesure de hauteur pour un sujet donné à une répétition donnée`).
+
+```{r conversion-long}
+# Passage en long : NA conservés
+df_long <- df_wide %>%
+  pivot_longer(
+    cols = starts_with("rep"),
+    names_to = "repetition",
+    values_to = "hauteur",
+    values_drop_na = FALSE
+  ) %>%
+  select(sujet,repetition, terreau, variete, hauteur)
+
+# Ordonner les répétitions
+df_long$repetition <- factor(df_long$repetition,
+                             levels = c("rep1", "rep2", "rep3", "rep4"))
+
+#  Enregistrer en Excel
+write_xlsx(df_long, "data/dataset_long.xlsx")
+```
+
+## 3. Détection et traitement des valeurs extrêmes
+
+Les outliers ont été recherchés par combinaison `**terreau × variété**`, afin de garantir des groupes suffisamment grands.  
+
+```{r verification-outliers}
+# Détection des outliers par répétition      
+outliers <- df_long %>%                         
+  group_by(terreau, variete) %>%                
+  identify_outliers(hauteur)
+
+outliers
+```
+7 observations atypiques ont été identifiées, reflétant la variabilité biologique réelle.
+Ces valeurs n'ont pas été supprimées mais **winsorisées** pour limiter leur influence sur l'ACP et l'analyse ultérieure.
+
+## 4. Winsorisation des outliers
+
+```{r winsorisation}
+# Fonction de winsorisation 1% - 99%
+winsorize <- function(x, probs = c(0.01, 0.99)) {
+  qs <- quantile(x, probs = probs, na.rm = TRUE)
+  x[x < qs[1]] <- qs[1]
+  x[x > qs[2]] <- qs[2]
+  return(x)
+}
+data <- df_long %>%
+  group_by(terreau, variete) %>%
+  mutate(hauteur_wins = winsorize(hauteur, probs = c(0.01, 0.99))) %>%
+  ungroup()
+```
+
+---
+
+# II. Exploration des données
+
+## 1. Statistiques descriptives univariées
+
+```{r univariate-desc}
+theme_gtsummary_compact()
+data %>%
+  select(hauteur, terreau, variete, repetition) %>%
+  tbl_summary(
+    statistic = list(
+      all_continuous() ~ "{mean} ± {sd} | médiane = {median} | [{min} ; {max}]",
+      all_categorical() ~ "{n} ({p}%)"
+    ),
+    digits = all_continuous() ~ 2,
+    label = list(
+      hauteur ~ "Hauteur des plantes (cm)",
+      terreau ~ "Type de terreau",
+      variete ~ "Variété",
+      repetition ~ "Répétition"
+    )
+  ) %>%
+  bold_labels() %>%
+  modify_header(label ~ "**Variables**") %>% 
+  modify_caption("**Tableau 1.** Statistiques descriptives des plants selon les traitements") %>%
+  modify_footnote(
+    all_stat_cols() ~ "Les valeurs sont présentées sous forme : moyenne ± écart-type | médiane | [min ; max]."
+  )
+
+```
+
+<div class="interpretation">
+La hauteur moyenne des plants est de 33,7 cm (écart-type 8,1 cm), avec une médiane proche (34,4 cm), indiquant une distribution globalement symétrique.
+Les plants sont répartis presque équitablement entre les variétés Var1 (51%) et Var2 (49%).
+Concernant le type de terreau, les effectifs sont légèrement déséquilibrés : Ca (37%), Ma (37%), An (26%). 
+La distribution des mesures selon les répétitions (T1–T4) est  homogène, ce qui permet de tester l’effet du temps dans les analyses de mesures répétées.
+Le tableau inclut 86 valeurs inconnues.
+</div>
+
+### Distribution globale de la hauteur des plantes
+
+```{r histo}
+ggplot(data, aes(x = hauteur)) +
+  geom_histogram(bins = 20, fill = "darkgreen", alpha = 0.7) +
+  labs(title = "Distribution globale de la hauteur des plantes",
+       x = "hauteur", y = "Effectif") +
+  theme_minimal()
+```
+<div class="interpretation"> La hauteur des plantes est globalement centrée autour de 34–36 cm, avec une distribution étalée à gauche et quelques valeurs extrêmes visibles sur l’histogramme.
+</div>
+
+---
+
+## 2. Statistiques descriptives bivariées
+
+### Box Plot de la hauteur pour chaque répétition
+
+```{r boxplot_hauteur_repet}
+ggplot(data,aes(x=terreau,y=hauteur,fill=variete))+geom_boxplot()+
+ggtitle("BoxPlot de la hauteur pour chaque répétition")+
+facet_wrap(~repetition)+
+xlab("Répétition`")+
+ylab("Hauteur")+
+theme_classic()
+```
+
+<div class="interpretation">Les hauteurs ne sont pas constantes d’une répétition à l’autre : la position des médianes et l’étendue des boîtes varient au fil du temps, ce qui suggère une évolution des mesures entre Rep1, Rep2, Rep3 et Rep4. *Les valeurs “aberrantes” visibles sur les boxplots par répétition ne sont pas des erreurs : elles reflètent la variabilité réelle et le faible effectif par sous-groupe. La winsorisation a été appliquée au niveau terreau × variété, pas pour chaque répétition.*</div>
+
+### Courbes de croissance (évolution temporelle)
+
+```{r desc-bivarie-courbes}
+# Calcul des statistiques par groupe
+summary_data <- data %>%
+  group_by(repetition, terreau, variete) %>%
+  summarise(
+    mean_hauteur = mean(hauteur, na.rm = TRUE),
+    sd_hauteur   = sd(hauteur, na.rm = TRUE),
+    n            = n(),
+    se_hauteur   = sd_hauteur / sqrt(n),
+    ci_lower     = mean_hauteur - 1.96 * se_hauteur,
+    ci_upper     = mean_hauteur + 1.96 * se_hauteur
+  )
+
+# Graphique
+ggplot(summary_data, aes(x = repetition, y = mean_hauteur,
+                         group = interaction(terreau, variete),
+                         color = variete, linetype = terreau)) +
+  geom_line(size = 1) +                        # ligne moyenne
+  geom_point(size = 2) +                       # points
+  geom_ribbon(aes(ymin = ci_lower, ymax = ci_upper, fill = variete),
+              alpha = 0.2, color = NA) +      # bande d'erreur
+  labs(
+    title = "Courbes de croissance des plants par répétition",
+    x = "Répétition",
+    y = "Hauteur moyenne (cm)",
+    color = "Variété",
+    fill = "Variété",
+    linetype = "Terreau"
+  ) +
+  theme_minimal(base_size = 14) +
+  scale_color_manual(values = c("Var1" = "darkgreen", "Var2" = "lightgreen")) +
+  scale_fill_manual(values = c("Var1" = "darkgreen", "Var2" = "lightgreen"))
+```
+
+<div class="interpretation">
+*Le graphique des profils moyens montre que la hauteur des plants varie selon la répétition, avec une  baisse autour de Rep3. Les trajectoires des deux variétés ne sont pas parallèles : l’écart entre Var1 et Var2 change au fil du temps, suggérant une interaction possible variété × répétition. Les profils sont globalement similaires entre les trois types de terreau, indiquant que l’effet visuel du terreau semble modéré.*
+</div>
+
+---
+
+## 3. Analyse exploratoire multivariée
+
+L’`Analyse en Composantes Principales (ACP)` est utilisée ici comme outil exploratoire complémentaire à l’ANOVA. L’ACP facilite la projection des répétitions, l’identification de regroupements naturels et la comparaison des traitements, fournissant ainsi une synthèse graphique et statistique des profils de croissance des plantes avant les tests formels.
+
+### Préparation
+
+```{r acp-preparation}
+data_acp <- df_wide
+
+## Sélection des colonnes numériques pour l'ACP
+num_vars <- data_acp[, c("rep1","rep2","rep3","rep4")]
+
+# Colonnes metadata pour terreau et variete
+meta <- data_acp[, c("terreau","variete")]
+print(meta)
+```
+
+### Imputation des NA
+
+```{r acp-imputation}
+# imputePCA remplace les NA par la valeur estimée par PCA
+impute <- imputePCA(num_vars, ncp = 2)
+data_impute <- impute$completeObs
+
+# Vérifier que tout est bien imputé
+sum(is.na(data_impute))  # doit être 0
+```
+
+### Calcul de l'ACP
+
+```{r acp-calcul}
+res_acp <- PCA(data_impute, scale.unit = TRUE, graph = FALSE)
+```
+
+### Valeurs propres et variance expliquée
+
+```{r acp-eigen}
+## Valeurs propres et variance expliquée
+eig <- get_eigenvalue(res_acp)
+kable(eig, caption = "Valeurs propres et variance expliquée par les composantes",
+      digits = 3, align = "c") %>%
+  kable_styling(bootstrap_options = c("striped","hover"), full_width = FALSE)
+eig
+```
+
+### Scree plot
+
+```{r acp-screeplot, fig.cap="Variance expliquée par composante (Scree plot)"}
+factoextra::fviz_eig(res_acp, addlabels = TRUE,
+   barfill = "lightgreen", barcolor = "#1e4d2b", linecolor = "#1e4d2b")
+```
+
+### Projection des individus
+
+```{r acp-ind}
+# Assurer que meta correspond exactement aux lignes de data_impute
+meta <- meta[1:nrow(data_impute), , drop = FALSE]
+meta$terreau <- factor(meta$terreau)  # facteur pour couleur
+
+fviz_pca_ind(res_acp,
+             geom.ind = "point",
+             habillage = meta$terreau,    # couleur selon terreau
+             addEllipses = TRUE,          # ellipses par groupe
+             ellipse.level = 0.95,
+             palette = "Dark2",
+             legend.title = "Terreau",
+             title = "ACP — Projection des individus selon le type de terreau")
+
+```
+
+### Projection des variables (repetition de mesure)
+
+```{r acp-var}
+fviz_pca_var(res_acp,
+             col.var = "contrib",          # couleur selon contribution
+             gradient.cols = c("lightgreen","green","darkgreen"),
+             repel = TRUE,
+             title = "ACP — Projection des variables (rep1 à rep4)")
+length(meta$terreau)
+n_active <- nrow(res_acp$ind$coord)
+```
+
+<div class="interpretation">
+L’ACP descriptive réalisée sur les données de croissance montre que les deux premières composantes expliquent 64,5 % de la variance totale. La projection des individus selon le type de terreau ne met pas en évidence de séparation nette entre les groupes, indiquant une forte variabilité intra-terreau. Le cercle des corrélations des répétitions met en évidence des profils différenciés entre rep1 à rep4, certaines répétitions étant corrélées entre elles (rep1 et rep3), tandis que d’autres s’opposent sur la première composante (rep2 et rep4). Ces résultats suggèrent une hétérogénéité entre répétitions, justifiant la prise en compte de l’effet “répétition” dans l’analyse inférentielle ultérieure.
+</div>
+
+
+<span class="badge-todo">Synthèse de l'analyse descriptive</span>
+
+L’analyse descriptive met en évidence l’ordre de grandeur et la dispersion des hauteurs observées. Les comparaisons bivariées et les profils moyens suggèrent des différences de croissance selon la variété, avec des trajectoires temporelles non parallèles, tandis que l’effet du terreau apparaît visuellement plus modéré. L’ACP met en évidence des structures globales et une hétérogénéité entre répétitions, ce qui motive l’usage d’une ANOVA à mesures répétées pour tester formellement les effets et interactions.
+
+---
+
+# III. Analyse inférentielle
+
+> Cette section vise à étudier l’effet des facteurs **terreau** et **variété** sur la **hauteur des plantes** au fil des **répétitions**. Nous utiliserons l’ANOVA à mesures répétées et un modèle linéaire mixte pour quantifier les effets et interactions significatives.
+
+---
+
+## 1. Types d’ANOVA et choix du modèle
+
+> Avant de lancer l’analyse, il est important de choisir le modèle adapté à la structure de nos données : mesures répétées, facteurs inter- et intra-sujets, présence de NA. Le tableau ci-dessous résume les options principales.
+
+| Type d’ANOVA             | Structure                           | Facteurs                   | Corrélation intra-sujet | Gestion des NA | Hypothèses principales                              | Usage typique                               |
+| ------------------------ | ----------------------------------- | -------------------------- | ----------------------- | -------------- | --------------------------------------------------- | ------------------------------------------- |
+| ANOVA classique          | Groupes indépendants                | Inter-sujets               | ❌                       | ❌              | Normalité, homogénéité des variances, indépendance  | Comparer des groupes distincts              |
+| ANOVA à mesures répétées | Même sujet, plusieurs mesures       | Intra-sujet (temps)        | ✅                       | ❌              | Normalité des résidus, sphéricité                   | Données longitudinales complètes (sans NA)  |
+| ANOVA mixte (split-plot) | Groupes + mesures répétées          | Inter + Intra              | ✅                       | ❌              | Normalité des résidus, homogénéité, sphéricité      | Plans combinant traitements et temps        |
+| Modèle linéaire mixte    | Déséquilibré, données hiérarchiques | Inter + Intra + aléatoires | ✅                       | ✅              | Normalité des résidus (effets aléatoires gaussiens) | Données non équilibrées, corrélées, avec NA |
+
+> Pour ce jeu de données, le **modèle linéaire mixte** est justifié pour tenir compte de la variabilité individuelle et des mesures répétées, surtout comme des NA sont présents.
+
+---
+
+## 2. Vérification des hypothèses
+
+### Valeurs extrêmes
+
+> Nous avons vérifié les valeurs aberrantes et appliqué une winsorisation (1% / 99%) pour limiter leur influence sans supprimer d’observations.
+
+### Normalité
+
+> L’hypothèse de normalité est testée par cellule (Terreau × Variété × Répétition) avec Shapiro-Wilk et vérifiée graphiquement via QQ-plots pour chaque cellule du plan.
+
+```{r hypo_norm_shapiro}
+data %>%
+  group_by(terreau, variete, repetition) %>%
+  shapiro_test(hauteur)
+```
+Le test de Shapiro-Wilk appliqué par cellule (Terreau × Variété × Répétition) met en évidence quelques déviations ponctuelles à la normalité (p < 0,05), principalement pour la variété Var1 à certaines répétitions. Cependant, plusieurs cellules ont des effectifs faibles (parfois n ≤ 10), rendant le test instable et très sensible. 
+
+```{r hypo_norm_qqplot}
+ggqqplot(data, "hauteur", ggtheme = theme_bw()) +
+  facet_grid(repetition ~ variete, labeller = "label_both")
+```
+
+L’évaluation graphique via les QQ-plots suggère une normalité globalement acceptable des résidus.
+
+### Homogénéité des variances
+
+> Test de Levene par répétition pour vérifier l’égalité des variances entre groupes.
+
+```{r hypo_homo}
+data %>%
+  group_by(repetition) %>%
+  levene_test(hauteur ~ terreau*variete)
+```
+Le test de Levene (centré sur la médiane) a été appliqué séparément à chaque répétition afin d’évaluer l’hypothèse d’homogénéité des variances entre les groupes définis par les facteurs terreau et variété.
+Les résultats indiquent que l’hypothèse d’égalité des variances n’est pas rejetée pour l’ensemble des répétitions :
+rep1 (p = 0,727), rep2 (p = 0,797), rep3 (p = 0,502) et rep4 (p = 0,078).
+
+Ainsi, pour chacune des répétitions, aucune hétéroscédasticité significative n’est détectée au seuil de 5 %. Bien que la p-value associée à la répétition 4 soit relativement proche du seuil de significativité, elle demeure non significative. L’hypothèse d’homogénéité des variances peut donc être considérée comme raisonnablement satisfaite dans l’ensemble du dispositif expérimental.
+
+
+### Sphéricité
+
+> L’hypothèse de sphéricité stipule que les variances des différences entre les niveaux du facteur intra-sujets (ici la répétition des mesures) sont égales. 
+
+Cette hypothèse est spécifique aux plans à mesures répétées et est classiquement évaluée à l’aide du test de Mauchly. En cas de violation de cette hypothèse (p < 0,05), des corrections des degrés de liberté telles que Greenhouse–Geisser sont recommandées afin d’éviter une inflation du risque de première espèce.
+Dans cette étude, l’hypothèse de sphéricité a été testée automatiquement dans le cadre de l’ANOVA mixte (terreau et variété comme facteurs inter-sujets, répétition comme facteur intra-sujets) à l’aide de la fonction anova_test() du package rstatix. Les corrections de sphéricité ont été appliquées automatiquement lorsque nécessaire, via la fonction get_anova_table() (Greenhouse–Geisser).
+
+```{r}
+res.aov <- anova_test(
+  data = data, dv = hauteur, wid = sujet,
+  within = repetition, between = c(terreau, variete)
+)
+get_anova_table(res.aov)
+```
+
+L’hypothèse de sphéricité a été testée automatiquement et les corrections Greenhouse–Geisser ont été appliquées lorsque nécessaire. Cela garantit que les degrés de liberté intra-sujets sont ajustés pour éviter une inflation du risque de type I (conclure qu’un effet est significatif alors qu’il ne l’est pas vraiment).
+
+## 3. Résultats de l'anova
+
+### Effets principaux
+
+- Terreau : non significatif (p = 0,303, ges = 0,012) : le type de terreau n’influence pas significativement la hauteur.
+- Variété : significatif (p = 5,6e-04, ges = 0,068) : la hauteur varie selon la variété.
+- Répétition : significatif (p = 2,92e-04, ges = 0,145) : la hauteur évolue au fil des répétitions.
+
+### Interactions
+
+- Varieté × répétition : significative (p = 9,62e-05, ges = 0,162) : la différence entre variétés dépend du moment de mesure.
+- Autres interactions (terreau × variété, terreau × répétition, terreau × variété × répétition) : non significatives : pas d’effet combiné notable de ces facteurs.
+
+>L’effet du temps (répétitions) et la variété influencent la croissance des plantes, tandis que le terreau seul n’a pas d’effet majeur. L’interaction variété × répétition suggère que certaines variétés croissent différemment selon les moments de mesure.
+
+---
+
+## 4. Analyse post-hoc
+
+Après l’ANOVA à mesures répétées, certaines interactions ou effets principaux sont significatifs (ex. variete, repetition, variete × repetition).
+`L’ANOVA globale indique seulement qu’il y a une différence quelque part, mais ne précise pas quels niveaux diffèrent entre eux.`
+
+### Comparaisons par paires
+
+> Les effets principaux et interactions sont détaillés par comparaisons multiples avec correction Bonferroni pour limiter les erreurs de type I.
+
+Les Comparaisons par paires (pairwise_t_test) permettent d’`identifier quelles variétés diffèrent statistiquement dans chaque combinaison` répétition × terreau. La correction Bonferroni `ajuste le seuil de significativité` pour limiter le risque d’erreur de type I, qui augmente lorsqu’on fait plusieurs tests simultanément.
+
+```{r}
+pwc <- data %>%
+  group_by(repetition, terreau) %>%
+  pairwise_t_test(hauteur ~ variete, p.adjust.method = "bonferroni")
+pwc
+```
+- `Répétition 1 (rep1)` :
+
+  * Toutes les combinaisons de terreau (An, Ca, Ma) montrent une **différence significative entre Var1 et Var2**.
+  * p-values ajustées Bonferroni : An = 0.0074 (**), Ca = 2.25e-05 (****), Ma = 2.25e-05 (****)
+  * **Interprétation** : Var2 est significativement plus haute que Var1 à rep1 pour tous les types de terreau.
+
+- `Répétitions 2 à 4 (rep2, rep3, rep4)` :
+
+  * Aucune différence significative entre Var1 et Var2 pour aucun terreau (p.adj > 0.05, ns).
+  * **Interprétation** : À partir de rep2, les hauteurs des deux variétés se rapprochent, la différence initiale observée à rep1 disparaît.
+
+* L’effet de la **variété sur la hauteur** est **fort au début de l’expérience (rep1)**, mais **s’estompe au fil des répétitions**, ce qui correspond bien à l’interaction significative **variete × repetition** observée dans l’ANOVA.
+* Le type de **terreau n’influence pas la différence entre Var1 et Var2**, puisque la tendance est la même pour An, Ca et Ma.
+
+## 5. Modèle linéaire mixte
+
+> Pour tenir compte à la fois de la répétition et de la variabilité individuelle, nous ajustons un LLM avec effet aléatoire sur les sujets.
+
+L’ANOVA classique ou à mesures répétées suppose souvent des données équilibrées et pas de valeurs manquantes, et peut être sensible aux petites déviations.
+
+Le LMM permet 
+- d’inclure les répétitions comme facteur intra-sujet et la variabilité individuelle des plantes comme effet aléatoire ((1|sujet)) ;
+- de gérer les données déséquilibrées et les NA ;
+- de produire des estimations plus robustes et de confirmer les résultats de l’ANOVA globale.
+
+> En résumé, le LMM est une version plus flexible et fiable de l’ANOVA à mesures répétées pour des données expérimentales réelles avec répétitions et variabilité individuelle.
+
+```{r}
+mod <- lmer(hauteur ~ terreau*variete*repetition + (1|sujet), data = data)
+anova(mod, type = 3)
+```
+### Résultats du LMM
+
+- Effets principaux :
+
+* Effet du type de terreau : F(2, 258) = 0.062, p = 0.94 → non significatif. Interprétation : le type de terreau n’a pas d’effet mesurable sur la hauteur des plantes dans cet échantillon.
+* Effet de la variété : F(1, 258) = 14.14, p = 0.00021 → hautement significatif (* )**. Interprétation : les différentes variétés présentent des hauteurs moyennes significativement différentes.
+* Effet de la répétition (mesure dans le temps) : F(3, 258) = 9.70, p ≈ 4.36e-06 → hautement significatif (* )**. Interprétation : la hauteur des plantes varie significativement au fil des répétitions.
+
+- Interactions
+
+* variete × repetition : F(3, 258) = 9.88, p ≈ 3.44e-06 → significatif (* )**. L’effet de la variété dépend du moment de mesure : certaines variétés croissent plus vite ou plus lentement à différentes répétitions.
+* terreau × variete, terreau × repetition, terreau × variete × repetition : p > 0.88 → non significatives. Il n’y a pas d’effet combiné du terreau avec la variété ou les répétitions sur la hauteur.
+
+La variété et le temps (répétition) sont les principaux facteurs qui influencent la hauteur. Le terreau n’a pas d’impact significatif, ni en effet principal ni en interaction. L’interaction significative variété × répétition indique que les trajectoires de croissance diffèrent selon la variété au fil du temps.
+
+> En résumé : le modèle confirme les conclusions de l’ANOVA classique et souligne l’importance de suivre la croissance par répétition pour chaque variété.
+
+<span class="badge-todo">Synthèse de l’analyse inférentielle</span>
+
+L’ANOVA à mesures répétées et le modèle linéaire mixte montrent que :
+- Variété et répétition (temps) influencent significativement la hauteur des plantes.
+- L’interaction variété × répétition est significative : la différence de croissance entre variétés dépend du moment de mesure.
+- Le type de terreau n’a pas d’effet significatif, ni seul ni en interaction avec les autres facteurs.
+- Les tests post-hoc (comparaisons par paires avec correction Bonferroni) confirment que certaines variétés diffèrent significativement au sein de répétitions et de terreaux spécifiques.
+- L’utilisation du modèle linéaire mixte permet de tenir compte de la variabilité individuelle des sujets et confirme les effets observés, tout en offrant une approche robuste face aux données déséquilibrées.
+
+> Conclusion : la croissance des plantes est majoritairement déterminée par la variété et le moment de mesure, avec des différences temporelles entre variétés, alors que le terreau joue un rôle modéré. Ces résultats justifient les analyses post-hoc et la prise en compte des répétitions pour interpréter finement les effets biologiques.
