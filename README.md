@@ -61,14 +61,14 @@ Le cours d’ANOVA occupe une place centrale dans la formation de l’ingénieur
    └── dataset.xlsx
    └── 1.BASE TP ANOVA ISE2 2025-2026.xlsx
 
-📁 scripts/
-   ├── script_analyse_anova_mesures_repetees_vf.Rmd
-
-📁 figures/
-
-📁 report/
+   └── script_analyse_anova_mesures_repetees.html
+   ├── script_analyse_anova_mesures_repetees.Rmd
+   ├── rapport_analyse_anova_mesures_repetees.pdf
    ├── main.tex
    └── page_de_garde.tex
+📁 figures/
+
+   
 ```
 
 ---
