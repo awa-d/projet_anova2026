@@ -94,7 +94,7 @@ Le cours d’ANOVA occupe une place centrale dans la formation de l’ingénieur
 
    * Statistiques univariées
    * Comparaisons bivariées : Visualisations (boxplots, profils de croissance)
-   *Analyse exploratoire multivariée : ACP (analyse en composantes principales)
+   * Analyse exploratoire multivariée : ACP (analyse en composantes principales)
 
 3. **Analyse inférentielle**
 
@@ -117,7 +117,7 @@ Le cours d’ANOVA occupe une place centrale dans la formation de l’ingénieur
 
 ## Auteurs
 
-* [Awa Diaw](https://github.com/awa-d) et [Mamady I Bérété](https://github.com/kefimba)**
+* [Awa Diaw](https://github.com/awa-d) et [Mamady I Bérété](https://github.com/kefimba)
   Étudiants en 2e année – Filière ISE
   École nationale de la Statistique et de l’Analyse économique
 
